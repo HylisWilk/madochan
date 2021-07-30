@@ -18,4 +18,5 @@ print(new_word)
 ```
 
 For a more descriptive example check out the jupyter notebook on this repo, or the colab notebook below:
+
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HylisWilk/madochan/blob/main/examples.ipynb)
