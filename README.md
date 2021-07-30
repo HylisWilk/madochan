@@ -1,6 +1,12 @@
 # madochan
 seq2seq word generator for fun
 
+The models were trained on the version of the Merriam Webster dictionary made available on the following repository:
+
+https://github.com/matthewreagan/WebstersEnglishDictionary
+
+(This is a W.I.P. and most likely will be improved over time).
+
 ## Creating words ##
 
 This can be done by simply calling the appropriate Class and passing a definition of a word.
