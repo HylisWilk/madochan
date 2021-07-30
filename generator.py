@@ -16,7 +16,7 @@ class Madochan():
     
     def __init__(self):
     
-        self.model = tf.keras.models.load_model('./models/1000epochs600lenhashingbidirectional.h5',compile=False)
+        self.model = tf.keras.models.load_model('./madochan/models/1000epochs600lenhashingbidirectional.h5',compile=False)
         self.longest_sentence_len = self.model.input_shape[0][1]
         self.voc_size = 5000 #Vocabulary size for hashing trick
         self.ps=PorterStemmer()
