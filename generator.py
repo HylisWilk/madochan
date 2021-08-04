@@ -20,12 +20,11 @@ class Madochan():
 
     def __init__(self, model = None):
 
-        self.model = model if model else load_model('./madochan/models/1000epochs600lenhashingbidirectional.h5')
-        self.longest_sentence_len = self.model.input_shape[0][1]
+        if not model:
+            model = load_model('./madochan/models/1000epochs600lenhashingbidirectional.h5')
+        self.change_model(model)
         self.voc_size = 5000 #Vocabulary size for hashing trick
         self.ps=PorterStemmer()
-        self.latent_dim = self.model.layers[-2].output[0].shape[-1]
-        self.num_decoder_tokens = self.model.input_shape[1][2]
         self.max_decoder_seq_length = 37 #Maximum word size
         self.weirdness = 1 #Determines which prediction to use. 1 = argmax, 2 equals second best prediction, etc. The higher, the more the words become weird.
         self.reverse_target_char_index = dict({0: '\t', 1: '\n', 2: ' ', 3: '-', 4: 'a', 5: 'b', 6: 'c', 7: 'd', 8: 'e', 9: 'f', 10: 'g', 11: 'h', 12: 'i', 13: 'j', 14: 'k', 15: 'l', 16: 'm', 17: 'n', 18: 'o', 19: 'p', 20: 'q', 21: 'r', 22: 's', 23: 't', 24: 'u', 25: 'v', 26: 'w', 27: 'x', 28: 'y', 29: 'z'})
