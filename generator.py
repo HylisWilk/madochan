@@ -11,17 +11,20 @@ import numpy as np
 nltk.download('stopwords')
 from tensorflow.keras.preprocessing.text import hashing_trick
 
+
+def load_model(file):
+    return tf.keras.models.load_model(file, compile=False)
+
+
 class Madochan():
-    
-    
-    def __init__(self):
-    
-        self.model = tf.keras.models.load_model('./madochan/models/1000epochs600lenhashingbidirectional.h5',compile=False)
-        self.longest_sentence_len = self.model.input_shape[0][1]
+
+    def __init__(self, model = None):
+
+        if not model:
+            model = load_model('./madochan/models/1000epochs600lenhashingbidirectional.h5')
+        self.change_model(model)
         self.voc_size = 5000 #Vocabulary size for hashing trick
         self.ps=PorterStemmer()
-        self.latent_dim = self.model.layers[-2].output[0].shape[-1]
-        self.num_decoder_tokens = self.model.input_shape[1][2]
         self.max_decoder_seq_length = 37 #Maximum word size
         self.weirdness = 1 #Determines which prediction to use. 1 = argmax, 2 equals second best prediction, etc. The higher, the more the words become weird.
         self.reverse_target_char_index = dict({0: '\t', 1: '\n', 2: ' ', 3: '-', 4: 'a', 5: 'b', 6: 'c', 7: 'd', 8: 'e', 9: 'f', 10: 'g', 11: 'h', 12: 'i', 13: 'j', 14: 'k', 15: 'l', 16: 'm', 17: 'n', 18: 'o', 19: 'p', 20: 'q', 21: 'r', 22: 's', 23: 't', 24: 'u', 25: 'v', 26: 'w', 27: 'x', 28: 'y', 29: 'z'})
@@ -37,7 +40,7 @@ class Madochan():
         self.num_decoder_tokens = newmodel.input_shape[1][2]
 
     def create_encoder_decoder(self):
-        
+
         self.encoder_inputs = self.model.input[0]  # input_1
 
         if len(self.model.layers[3].output) == 5:
@@ -45,7 +48,7 @@ class Madochan():
 
         elif len(self.model.layers[3].output) == 3:
             self.encoder_outputs, self.state_h_enc, self.state_c_enc = self.model.layers[3].output  # Bidirectional
-        
+
         self.encoder_states = [self.state_h_enc, self.state_c_enc]
         self.encoder_model = tf.keras.Model(self.encoder_inputs, self.encoder_states)
 
@@ -58,10 +61,10 @@ class Madochan():
         self.decoder_states = [self.state_h_dec, self.state_c_dec]
         self.decoder_dense = self.model.layers[5]
         self.decoder_outputs = self.decoder_dense(self.decoder_outputs)
-        self.decoder_model = tf.keras.Model([self.decoder_inputs] + self.decoder_states_inputs, [self.decoder_outputs] + self.decoder_states)   
+        self.decoder_model = tf.keras.Model([self.decoder_inputs] + self.decoder_states_inputs, [self.decoder_outputs] + self.decoder_states)
 
     def preprocess(self,message):
-      
+
         review=re.sub("[^a-zA-Z]"," ", str(message))
         review = re.sub(r'http\S+', " ", str(review))
         review = re.sub(r'@\w+',' ', str(review))
@@ -71,7 +74,7 @@ class Madochan():
         review=review.split()
         review=[self.ps.stem(word) for word in review if not word in stopwords.words("english")]
         review=" ".join(review)
-        
+
         hashed_string = hashing_trick(review,self.voc_size, 'md5') #Using md5 for consistency between runs
 
         embedded_docs=pad_sequences([hashed_string],padding="post",maxlen=self.longest_sentence_len).squeeze()
@@ -85,7 +88,7 @@ class Madochan():
         #We wrap the predictions with a tf.function to avoid retracing warnings.
         self.encoder_model.predict_function = tf.function(experimental_relax_shapes=True)(self.encoder_model)
         self.decoder_model.predict_function = tf.function(experimental_relax_shapes=True)(self.decoder_model)
-        
+
         states_value = self.encoder_model.predict_function(input_seq)
         target_seq = np.zeros((1, 1, self.num_decoder_tokens))
 
